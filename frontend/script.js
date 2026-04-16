@@ -45,17 +45,27 @@ function addMessage(text, sender) {
 }
 
 // --- 3. BACKEND SE CHAT API CALL KARNE KA FUNCTION ---
+// --- 3. BACKEND SE CHAT API CALL KARNE KA FUNCTION ---
 async function sendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
 
     // User ka message UI mein dikhao
     addMessage(text, 'user');
-    userInput.value = ''; // Input box khali karo
+    userInput.value = ''; 
     
     // Button disable karo jab tak Babu Rao soch raha hai
     sendBtn.disabled = true;
     sendBtn.innerText = 'Ruk ja...';
+
+    // 👇 NAYA LAGA HAI: Typing animation UI mein add karo 👇
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-bubble';
+    typingDiv.classList.add('message', 'bot-message');
+    typingDiv.innerHTML = '<div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+    chatBox.appendChild(typingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    // 👆 NAYA END 👆
 
     try {
         const response = await fetch('http://localhost:10000/api/chat', {
@@ -68,21 +78,28 @@ async function sendMessage() {
 
         const data = await response.json();
 
-        // ✨ ASLI JAADU YAHAN HUA HAI ✨
+        // 👇 NAYA LAGA HAI: Response aate hi typing animation hata do 👇
+        const typingBubble = document.getElementById('typing-bubble');
+        if (typingBubble) typingBubble.remove();
+        // 👆 NAYA END 👆
+
         if (response.ok) {
             addMessage(data.answer, 'bot');
         } else {
-            // Google error hata diya, apna Babu Rao wala style daal diya!
-            addMessage("Arey deva! BSNL ka dabba kharab hai lagta hai! 15 sec me wapas bolna, abhi line busy hai! 📞", 'bot');
+            addMessage("Arey deva! BSNL ka dabba kharab lagta hai! 15 sec me wapas bolna, abhi line busy hai! 📞", 'bot');
         }
 
     } catch (error) {
-        // Agar local connection tut gaya
+        // 👇 NAYA LAGA HAI: Error aaye tab bhi typing animation hata do 👇
+        const typingBubble = document.getElementById('typing-bubble');
+        if (typingBubble) typingBubble.remove();
+        // 👆 NAYA END 👆
+
         addMessage("Arey Sham! Cable kisne nikala re? Mera server down ho gaya!", 'bot');
         console.error(error);
     } finally {
         sendBtn.disabled = false;
-        sendBtn.innerText = 'Send'; // Button ka naam clean UI ke hisab se "Send" kar diya
+        sendBtn.innerText = 'Send'; 
         userInput.focus();
     }
 }

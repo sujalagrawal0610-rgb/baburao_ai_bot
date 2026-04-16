@@ -1,60 +1,47 @@
-require('dotenv').config(); // 👈 Ye line environment variables ko load karti hai
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+// ✅ Naya dukan: Google ka official SDK use kar rahe hain
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🚨 Ab API key direct nahi likhi, .env file se aayegi!
-const API_KEY = process.env.API_KEY; 
+const API_KEY = process.env.API_KEY;
 
-// ROUTE 1: Frontend ke liye connection check
+// Google AI Setup
+const genAI = new GoogleGenerativeAI(API_KEY);
+// Model setup - SDK khud handle karega version ka chakkar
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+
 app.get('/status', (req, res) => {
-    res.json({ message: "Babu Rao ka server ekdum raapchik chal raha hai! ✅" });
+    res.json({ message: "Babu Rao ekdum raapchik hai re baba! ✅" });
 });
 
-// ROUTE 2: Asli Babu Bhaiya Chatbot API
 app.post('/api/chat', async (req, res) => {
     try {
         const { question } = req.body;
         console.log("User ka sawal:", question);
 
-        const prompt = `Tera naam Babu Bhaiya hai (Hera Pheri movie wala). Tujhse ye pucha hai: "${question}". Ekdum funny style mein Hindi mein jawab de. Max 1 lines mein khatam kar`;
+        const prompt = `Tera naam Babu Bhaiya hai. Tujhse ye pucha hai: "${question}". Ekdum funny style mein Hindi mein jawab de. Max 1 line.`;
 
-        // Using gemini-1.5-flash as it's the fastest and recommended model now
-        // 🚀 1.5 hata ke 2.5 laga diya!
-const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+        // ✅ SDK Method: Isme koi fetch ya URL nahi chahiye
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
         
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        const data = await response.json();
-
-        // Agar Google ne error diya
-        if (!response.ok) {
-            console.error("GOOGLE API DIRECT ERROR:", JSON.stringify(data, null, 2));
-            return res.status(500).json({ answer: `Google Error: ${data.error?.message || "Unknown"}` });
-        }
-
-        // Asli Jawab nikalna
-        const text = data.candidates[0].content.parts[0].text;
         console.log("Babu Bhaiya ka Jawab:", text);
-        
         res.json({ answer: text });
 
     } catch (error) {
-        console.error("--- ASLI LOCHA YAHAN HAI ---", error);
-        res.status(500).json({ answer: "Arey baba, code mein locha ho gaya re!" });
+        console.error("--- ASLI LOCHA TERMINAL MEIN DEKH ---", error);
+        // User ko abhi bhi funny error hi dikhayenge
+        res.status(500).json({ answer: "Arey deva! BSNL ka dabba kharab hai lagta hai! 15 sec me wapas bolna, abhi line busy hai! 📞" });
     }
 });
 
-const PORT = 10000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`Babu Rao LIVE on port ${PORT}... SDK ko laat maar di! 🔥`);
+    console.log(`Babu Rao LIVE! SDK wala engine fit kar diya hai! 🔥`);
 });
