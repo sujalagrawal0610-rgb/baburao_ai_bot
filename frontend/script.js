@@ -10,7 +10,7 @@ async function testConnection() {
         statusText.style.color = "#f39c12"; // Star Garage Yellow
 
         // Hum backend ke '/status' raste ko call kar rahe hain
-        const response = await fetch('http://localhost:10000/status');
+        const response = await fetch('https://baburao-ai-bot.onrender.com/status');
         const data = await response.json();
         
         // Agar response mil gaya toh ekdum green signal
@@ -68,7 +68,7 @@ async function sendMessage() {
     // 👆 NAYA END 👆
 
     try {
-        const response = await fetch('http://localhost:10000/api/chat', {
+        const response = await fetch('https://baburao-ai-bot.onrender.com/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
